@@ -1,4 +1,7 @@
 import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.function.Consumer;
 
 public class MyList<T> {
 
@@ -178,6 +181,23 @@ public class MyList<T> {
         return true;
     }
 
+    public boolean addAll(MyList<T> list) {
+        if (list == null) {
+            return false;
+        }
+        if (!(list instanceof MyList))
+            return false;
+
+        for (int i = 0; i < list.size; i++) {
+            T value = list.get(i);
+            currentNode.next = new Node<>(value);
+            currentNode.next.previous = currentNode;
+            currentNode = currentNode.next;
+            size++;
+        }
+        return true;
+    }
+
     public Object[] toArray() {
         Node<T> tempNode = currentNode;
         while (tempNode.previous != null)
@@ -203,6 +223,10 @@ public class MyList<T> {
             tempNode = tempNode.next;
         }
         return array;
+    }
+
+    public MyIterator<T> iterator() {
+        return new MyIterator<>();
     }
 
     public void clear() {
@@ -233,6 +257,48 @@ public class MyList<T> {
 
         public Node(T value) {
             this.value = value;
+        }
+    }
+
+    public class MyIterator <T> {
+
+        private Node<T> node;
+        private int cursor = 0;
+
+        public MyIterator() {
+            this.node = (Node<T>) currentNode;
+            while (this.node.previous != null) {
+                this.node = this.node.previous;
+            }
+        }
+
+        public boolean hasNext() {
+            return node.next != null;
+        }
+
+        public T next() {
+            if (cursor == 0) {
+                cursor++;
+                return node.value;
+            }
+            node = node.next;
+            cursor++;
+            return node.value;
+        }
+
+        public void remove() {
+            node.previous.next = node.next;
+            node.next.previous = node.previous;
+            size--;
+        }
+
+        public void forEachRemaining(Consumer<? super T> action) {
+            while (true) {
+                action.accept(node.value);
+                if (node.next == null)
+                    break;
+                node = node.next;
+            }
         }
     }
 }
